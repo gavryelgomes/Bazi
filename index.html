@@ -69,7 +69,7 @@ input:disabled { opacity:0.2; cursor:not-allowed; }
 @keyframes spin { to { transform:rotate(360deg); } }
 
 /* RESULTS */
-#results { display:none; animation:fadeUp 0.4s ease; }
+#results { display:none; animation:fadeUp 0.4s ease; margin-top:32px; }
 @keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
 
 /* SECTION DIVIDER */
@@ -205,13 +205,16 @@ input:disabled { opacity:0.2; cursor:not-allowed; }
 .cmp-divider-line { border:none; border-top:1px solid var(--border2); margin:12px 0; }
 @media(max-width:900px){ .forms-row { flex-direction:column; } }
 footer { text-align:center; margin-top:50px; color:var(--text-3); font-size:11px; font-style:italic; font-family:'Playfair Display',serif; }
+.bc-interp-badge { display:none; }
+#interp-banner { margin-bottom:12px; }
+.interp-banner-inner { background:rgba(197,162,62,0.08); border:1px solid rgba(197,162,62,0.25); border-radius:7px; padding:8px 14px; font-size:11px; color:var(--gold); font-family:'Playfair Display',serif; font-style:italic; text-align:center; }
 </style>
 </head>
 <body>
 <div class="page">
 
 <header class="site-header">
-  <h1>Bazi Tong Shu 1901-2060 </h1>
+  <h1>Tong Shu 1901-2026</h1>
   <p class="sub">Criado por @gomesmazza</p>
 </header>
 
@@ -310,6 +313,11 @@ footer { text-align:center; margin-top:50px; color:var(--text-3); font-size:11px
 </div>
 
 <div class="loading" id="loading"><span class="spin"></span>Carregando calendário...</div>
+
+<!-- MÊS INTERPOLADO BANNER -->
+<div id="interp-banner" style="display:none">
+  <div class="interp-banner-inner">⟳ <strong>Mês Interpolado</strong> — Este mês não possui início de novo signo. O signo e elemento exibidos são continuação do mês anterior.</div>
+</div>
 
 <!-- RESULTS -->
 <div id="results">
@@ -566,13 +574,14 @@ function renderHHS(ramoNorm){
   }).join('');
 }
 
-function renderCol(label,tronco,ramo,mestre){
+function renderCol(label,tronco,ramo,mestre,interp){
   const td=ELEMENTOS[tronco]||{simbolo:'?',cor:'#888',elem:'terra'};
   const ramoN=ramo==='Cachorro'?'Cão':ramo;
   const rd=RAMOS[ramoN]||{simbolo:'?',elem:'terra'};
   let d=getDeus(tronco,mestre);
   if(d&&d.nome==='Mestre do Dia'&&label!=='Dia') d={nome:'Paralelo Justo',cls:'paralelo'};
   const deusH=d?`<span class="bc-hs-deus" style="color:${d.cls==='mestre-dia'?'var(--gold)':td.cor}">${d.nome}</span>`:'';
+  const interpH=interp?`<div class="bc-interp-badge">⟳ Mês Interpolado</div>`:'';
   const hhsH=renderHHS(ramoN);
   return `<div class="bazi-col">
     <div class="bc-label">${label}</div>
@@ -586,13 +595,14 @@ function renderCol(label,tronco,ramo,mestre){
       <span class="bc-eb-name elem-${rd.elem}">${ramoN}</span>
     </div>
     <div class="bc-hhs">${hhsH}</div>
+    ${interpH}
   </div>`;
 }
 
 function renderTable(pillars,gridId){
   const g=document.getElementById(gridId);
   g.style.gridTemplateColumns=`repeat(${pillars.length},1fr)`;
-  g.innerHTML=pillars.map(p=>renderCol(p.l,p.t,p.r,p.m)).join('');
+  g.innerHTML=pillars.map(p=>renderCol(p.l,p.t,p.r,p.m,p.interp)).join('');
 }
 
 // ══════ RENDER LUCK SIDEBAR ══════
@@ -737,24 +747,43 @@ function extrapolate(iso){
 }
 
 // ══════ BUILD PILLARS ══════
-function buildPillars(entry,h,m,unknownHr,minOn,tronco_dia){
+function buildPillars(entry,h,m,unknownHr,minOn,tronco_dia,entryDateISO){
   const ramo_dia=entry.signo_do_dia;
   let tm,rm,ta,ra;
+  let mesInterpolado=false;
   if(entry._extrapolated){
     tm=entry._mes_tronco||'—';rm=entry._mes_ramo||'—';ta=entry._ano_tronco||'—';ra=entry._ano_ramo||'—';
   }else{
-    const mp=parseMes(entry.mes_chines);tm=mp.t||'—';rm=mp.a;
+    // Detect interpolated month
+    if(entry.mes_chines==='Mês Interpolado'){
+      mesInterpolado=true;
+      // Find the previous entry in calMap that is NOT interpolated
+      const keys=Object.keys(window.calMap).sort((a,b)=>parseBRDate(a)-parseBRDate(b));
+      const entryDate=entryDateISO?new Date(entryDateISO):null;
+      let prevEntry=null;
+      if(entryDate){
+        for(let i=keys.length-1;i>=0;i--){
+          const k=keys[i];
+          const d=parseBRDate(k);
+          if(d<entryDate && window.calMap[k].mes_chines!=='Mês Interpolado'){prevEntry=window.calMap[k];break;}
+        }
+      }
+      if(prevEntry){const mp=parseMes(prevEntry.mes_chines);tm=mp.t||'—';rm=mp.a;}
+      else{const mp=parseMes(entry.mes_chines);tm=mp.t||'—';rm=mp.a;}
+    }else{
+      const mp=parseMes(entry.mes_chines);tm=mp.t||'—';rm=mp.a;
+    }
     const ap=parseAno(entry.ano_chines);ta=ap.t||'—';ra=ap.a;
   }
   if(unknownHr){
-    return{pillars:[{l:'Dia',t:tronco_dia,r:ramo_dia,m:tronco_dia},{l:'Mês',t:tm,r:rm,m:tronco_dia},{l:'Ano',t:ta,r:ra,m:tronco_dia}],tm,rm,ta,ra};
+    return{pillars:[{l:'Dia',t:tronco_dia,r:ramo_dia,m:tronco_dia},{l:'Mês',t:tm,r:rm,m:tronco_dia,interp:mesInterpolado},{l:'Ano',t:ta,r:ra,m:tronco_dia}],tm,rm,ta,ra};
   }
   const hr=horaRamo(h,m); const th=troncoHora(tronco_dia,hr.i); const rh=hr.a;
   if(minOn){
     const mr=minutoRamo(h,m); const tmin=troncoMin(th,mr.i);
-    return{pillars:[{l:'Minuto',t:tmin,r:mr.a,m:tronco_dia},{l:'Hora',t:th,r:rh,m:tronco_dia},{l:'Dia',t:tronco_dia,r:ramo_dia,m:tronco_dia},{l:'Mês',t:tm,r:rm,m:tronco_dia},{l:'Ano',t:ta,r:ra,m:tronco_dia}],tm,rm,ta,ra};
+    return{pillars:[{l:'Minuto',t:tmin,r:mr.a,m:tronco_dia},{l:'Hora',t:th,r:rh,m:tronco_dia},{l:'Dia',t:tronco_dia,r:ramo_dia,m:tronco_dia},{l:'Mês',t:tm,r:rm,m:tronco_dia,interp:mesInterpolado},{l:'Ano',t:ta,r:ra,m:tronco_dia}],tm,rm,ta,ra};
   }
-  return{pillars:[{l:'Hora',t:th,r:rh,m:tronco_dia},{l:'Dia',t:tronco_dia,r:ramo_dia,m:tronco_dia},{l:'Mês',t:tm,r:rm,m:tronco_dia},{l:'Ano',t:ta,r:ra,m:tronco_dia}],tm,rm,ta,ra};
+  return{pillars:[{l:'Hora',t:th,r:rh,m:tronco_dia},{l:'Dia',t:tronco_dia,r:ramo_dia,m:tronco_dia},{l:'Mês',t:tm,r:rm,m:tronco_dia,interp:mesInterpolado},{l:'Ano',t:ta,r:ra,m:tronco_dia}],tm,rm,ta,ra};
 }
 
 // ══════ TOGGLE COMPARE FORM ══════
@@ -794,9 +823,13 @@ async function calculate(){
   const[hs,ms]=et.split(':'); const h=parseInt(hs),m=parseInt(ms);
   const td=entry.elemento_do_mestre_do_dia;
   const minOn=document.getElementById('minuto-pilar').checked;
-  const{pillars,tm,rm,ta,ra}=buildPillars(entry,h,m,unk,minOn,td);
+  const{pillars,tm,rm,ta,ra}=buildPillars(entry,h,m,unk,minOn,td,ed);
 
   renderTable(pillars,'pilares-grid');
+
+  // Show interpolated month banner
+  const interpBanner=document.getElementById('interp-banner');
+  if(interpBanner) interpBanner.style.display=pillars.some(p=>p.interp)?'block':'none';
 
   const[dd,mm,yy]=dateBR.split('/');
   const hrN=unk?' · hora desconhecida':` às ${tv||'12:00'}${sn}`;
@@ -842,7 +875,7 @@ async function calculateCompare(){
   const[hs,ms]=et.split(':'); const h=parseInt(hs),m=parseInt(ms);
   const td=entry.elemento_do_mestre_do_dia;
   const minOn=document.getElementById('cmp-minuto-pilar').checked;
-  const{pillars,tm,rm,ta,ra}=buildPillars(entry,h,m,unk,minOn,td);
+  const{pillars,tm,rm,ta,ra}=buildPillars(entry,h,m,unk,minOn,td,ed);
 
   renderTable(pillars,'cmp-pilares-grid');
 
