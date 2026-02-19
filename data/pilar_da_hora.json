@@ -1,0 +1,66 @@
+{
+  "pilar_da_hora": {
+    "ramos_terrestres": [
+      { "ramo": "Zi",   "animal": "Rato",     "inicio": "00:00", "fim": "00:59" },
+      { "ramo": "Chou", "animal": "Boi",      "inicio": "01:00", "fim": "02:59" },
+      { "ramo": "Yin",  "animal": "Tigre",    "inicio": "03:00", "fim": "04:59" },
+      { "ramo": "Mao",  "animal": "Coelho",   "inicio": "05:00", "fim": "06:59" },
+      { "ramo": "Chen", "animal": "Dragão",   "inicio": "07:00", "fim": "08:59" },
+      { "ramo": "Si",   "animal": "Serpente", "inicio": "09:00", "fim": "10:59" },
+      { "ramo": "Wu",   "animal": "Cavalo",   "inicio": "11:00", "fim": "12:59" },
+      { "ramo": "Wei",  "animal": "Cabra",    "inicio": "13:00", "fim": "14:59" },
+      { "ramo": "Shen", "animal": "Macaco",   "inicio": "15:00", "fim": "16:59" },
+      { "ramo": "You",  "animal": "Galo",     "inicio": "17:00", "fim": "18:59" },
+      { "ramo": "Xu",   "animal": "Cão",      "inicio": "19:00", "fim": "20:59" },
+      { "ramo": "Hai",  "animal": "Porco",    "inicio": "21:00", "fim": "22:59" },
+      { "ramo": "Zi",   "animal": "Rato",     "inicio": "23:00", "fim": "23:59" }
+    ],
+
+    "tronco_inicial_por_tronco_do_dia": {
+      "Madeira Yang": "Madeira Yang",
+      "Terra Yin":    "Madeira Yang",
+      "Madeira Yin":  "Fogo Yang",
+      "Metal Yang":   "Fogo Yang",
+      "Fogo Yang":    "Terra Yang",
+      "Metal Yin":    "Terra Yang",
+      "Fogo Yin":     "Metal Yang",
+      "Água Yang":    "Metal Yang",
+      "Terra Yang":   "Água Yang",
+      "Água Yin":     "Água Yang"
+    },
+
+    "ordem_troncos": [
+      "Terra Yang",
+      "Terra Yin",
+      "Fogo Yang",
+      "Fogo Yin",
+      "Terra Yang",
+      "Terra Yin",
+      "Metal Yang",
+      "Metal Yin",
+      "Água Yang",
+      "Água Yin"
+    ],
+
+    "regra_calculo_tronco_hora": {
+      "descricao": "O tronco da hora inicia conforme o tronco do dia na hora Zi (Rato). A partir disso, segue-se a ordem dos 10 troncos celestes sequencialmente para cada ramo seguinte.",
+      "formula_modular": "indice_tronco_hora = (indice_tronco_inicial + indice_ramo) % 10"
+    },
+
+    "indice_ramos": {
+      "Zi (1º)":  0,
+      "Chou":     1,
+      "Yin":      2,
+      "Mao":      3,
+      "Chen":     4,
+      "Si":       5,
+      "Wu":       6,
+      "Wei":      7,
+      "Shen":     8,
+      "You":      9,
+      "Xu":       10,
+      "Hai":      11,
+      "Zi (2º)":  12
+    }
+  }
+}

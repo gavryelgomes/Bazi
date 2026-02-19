@@ -1,0 +1,102 @@
+{
+  "tronco_celeste": {
+    "dimensoes": { "largura": 133, "altura": 85 },
+    "simbolo": {
+      "tamanho": 30,
+      "cor": "#FFFFFF"
+    },
+    "dados": {
+      "Madeira Yang":  { "simbolo": "甲", "elemento": "Madeira", "cor": "#02ae4f", "yin_yang": "Yang" },
+      "Madeira Yin":   { "simbolo": "乙", "elemento": "Madeira", "cor": "#02ae4f", "yin_yang": "Yin" },
+      "Fogo Yang": { "simbolo": "丙", "elemento": "Fogo", "cor": "#f90000", "yin_yang": "Yang" },
+      "Fogo Yin": { "simbolo": "丁", "elemento": "Fogo", "cor": "#f90000", "yin_yang": "Yin" },
+      "Terra Yang":   { "simbolo": "戊", "elemento": "Terra", "cor": "#fbc001", "yin_yang": "Yang" },
+      "Terra Yin":   { "simbolo": "己", "elemento": "Terra", "cor": "#fbc001", "yin_yang": "Yin" },
+      "Metal Yang": { "simbolo": "庚", "elemento": "Metal", "cor": "#7c7b7c", "yin_yang": "Yang" },
+      "Metal Yin":  { "simbolo": "辛", "elemento": "Metal", "cor": "#7c7b7c", "yin_yang": "Yin" },
+      "Água Yang":  { "simbolo": "壬", "elemento": "Água", "cor": "#2d5492", "yin_yang": "Yang" },
+      "Água Yin":  { "simbolo": "癸", "elemento": "Água", "cor": "#2d5492", "yin_yang": "Yin" }
+    }
+  },
+
+  "tronco_terrestre": {
+    "dimensoes": { "largura": 133, "altura": 85 },
+    "texto": { "tamanho": 14, "cor": "#FFFFFF" },
+    "simbolo": { "tamanho": 30, "cor": "#FFFFFF" },
+    "dados": {
+      "Rato":     { "simbolo": "子", "elemento": "Água", "cor_fundo": "#2d5492" },
+      "Boi":      { "simbolo": "丑", "elemento": "Terra", "cor_fundo": "#fbc001" },
+      "Tigre":    { "simbolo": "寅", "elemento": "Madeira", "cor_fundo": "#02ae4f" },
+      "Coelho":   { "simbolo": "卯", "elemento": "Madeira", "cor_fundo": "#02ae4f" },
+      "Dragão":   { "simbolo": "辰", "elemento": "Terra", "cor_fundo": "#fbc001" },
+      "Serpente": { "simbolo": "巳", "elemento": "Fogo", "cor_fundo": "#f90000" },
+      "Cavalo":   { "simbolo": "午", "elemento": "Fogo", "cor_fundo": "#f90000" },
+      "Cabra":    { "simbolo": "未", "elemento": "Terra", "cor_fundo": "#fbc001" },
+      "Macaco":   { "simbolo": "申", "elemento": "Metal", "cor_fundo": "#7c7b7c" },
+      "Galo":     { "simbolo": "酉", "elemento": "Metal", "cor_fundo": "#7c7b7c" },
+      "Cão":      { "simbolo": "戌", "elemento": "Terra", "cor_fundo": "#fbc001" },
+      "Porco":    { "simbolo": "亥", "elemento": "Água", "cor_fundo": "#2d5492" }
+    }
+  },
+
+  "raizes_ocultas": {
+    "dimensoes": { "largura": 133, "altura": 33 },
+    "texto": { "tamanho": 11, "cor": "#FFFFFF" },
+    "render": { "direcao": "direita_para_esquerda" },
+    "dados": {
+      "Rato": {
+        "principal": { "tronco": "Gui", "peso": 100 }
+      },
+      "Boi": {
+        "principal": { "tronco": "Ji", "peso": 60 },
+        "secundaria": { "tronco": "Xin", "peso": 20 },
+        "residual": { "tronco": "Gui", "peso": 20 }
+      },
+      "Tigre": {
+        "principal": { "tronco": "Jia", "peso": 60 },
+        "secundaria": { "tronco": "Bing", "peso": 20 },
+        "residual": { "tronco": "Wu", "peso": 20 }
+      },
+      "Coelho": {
+        "principal": { "tronco": "Yi", "peso": 100 }
+      },
+      "Dragão": {
+        "principal": { "tronco": "Wu", "peso": 60 },
+        "secundaria": { "tronco": "Gui", "peso": 20 },
+        "residual": { "tronco": "Yi", "peso": 20 }
+      },
+      "Serpente": {
+        "principal": { "tronco": "Bing", "peso": 60 },
+        "secundaria": { "tronco": "Geng", "peso": 20 },
+        "residual": { "tronco": "Wu", "peso": 20 }
+      },
+      "Cavalo": {
+        "principal": { "tronco": "Ding", "peso": 65 },
+        "secundaria": { "tronco": "Ji", "peso": 35 }
+      },
+      "Cabra": {
+        "principal": { "tronco": "Ji", "peso": 60 },
+        "secundaria": { "tronco": "Yi", "peso": 20 },
+        "residual": { "tronco": "Ding", "peso": 20 }
+      },
+      "Macaco": {
+        "principal": { "tronco": "Geng", "peso": 60 },
+        "secundaria": { "tronco": "Ren", "peso": 20 },
+        "residual": { "tronco": "Wu", "peso": 20 }
+      },
+      "Galo": {
+        "principal": { "tronco": "Xin", "peso": 100 }
+      },
+      "Cão": {
+        "principal": { "tronco": "Wu", "peso": 60 },
+        "secundaria": { "tronco": "Ding", "peso": 20 },
+        "residual": { "tronco": "Xin", "peso": 20 }
+      },
+      "Porco": {
+        "principal": { "tronco": "Ren", "peso": 65 },
+        "secundaria": { "tronco": "Jia", "peso": 35 }
+      }
+    }
+  },
+
+  

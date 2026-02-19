@@ -1,0 +1,74 @@
+{
+  "pilar_do_minuto": {
+    "ramos_terrestres": [
+      { "ramo": "Zi",   "animal": "Rato",     "inicio": "00:00", "fim": "04:59" },
+      { "ramo": "Chou", "animal": "Boi",      "inicio": "05:00", "fim": "14:59" },
+      { "ramo": "Yin",  "animal": "Tigre",    "inicio": "15:00", "fim": "24:59" },
+      { "ramo": "Mao",  "animal": "Coelho",   "inicio": "25:00", "fim": "34:59" },
+      { "ramo": "Chen", "animal": "Dragão",   "inicio": "35:00", "fim": "44:59" },
+      { "ramo": "Si",   "animal": "Serpente", "inicio": "45:00", "fim": "54:59" },
+      { "ramo": "Wu",   "animal": "Cavalo",   "inicio": "55:00", "fim": "01:04:59" },
+      { "ramo": "Wei",  "animal": "Cabra",    "inicio": "01:05:00", "fim": "01:14:59" },
+      { "ramo": "Shen", "animal": "Macaco",   "inicio": "01:15:00", "fim": "01:24:59" },
+      { "ramo": "You",  "animal": "Galo",     "inicio": "01:25:00", "fim": "01:34:59" },
+      { "ramo": "Xu",   "animal": "Cão",      "inicio": "01:35:00", "fim": "01:44:59" },
+      { "ramo": "Hai",  "animal": "Porco",    "inicio": "01:45:00", "fim": "01:54:59" },
+      { "ramo": "Zi",   "animal": "Rato",     "inicio": "01:55:00", "fim": "01:59:59" }
+    ],
+
+    "tronco_inicial_por_tronco_da_hora": {
+      "Madeira Yang": "Madeira Yang",
+      "Terra Yin":    "Madeira Yang",
+      "Madeira Yin":  "Fogo Yang",
+      "Metal Yang":   "Fogo Yang",
+      "Fogo Yang":    "Terra Yang",
+      "Metal Yin":    "Terra Yang",
+      "Fogo Yin":     "Metal Yang",
+      "Água Yang":    "Metal Yang",
+      "Terra Yang":   "Água Yang",
+      "Água Yin":     "Água Yang"
+    },
+
+    "ordem_troncos": [
+      "Terra Yang",
+      "Terra Yin",
+      "Fogo Yang",
+      "Fogo Yin",
+      "Terra Yang",
+      "Terra Yin",
+      "Metal Yang",
+      "Metal Yin",
+      "Água Yang",
+      "Água Yin"
+    ],
+
+    "regra_calculo_tronco_minuto": {
+      "descricao": "O tronco do minuto inicia conforme o tronco da hora na primeira posição Zi (Rato, 00:00–04:59). A partir disso, segue-se a ordem dos 10 troncos celestes sequencialmente para cada ramo seguinte. O segundo Zi (Rato, 01:55–01:59) recebe o tronco da posição 12 % 10 = 2 da ordem.",
+      "formula_modular": "indice_tronco_minuto = (indice_tronco_inicial + indice_ramo) % 10"
+    },
+
+    "indice_ramos": {
+      "Zi (1º)": 0,
+      "Chou":    1,
+      "Yin":     2,
+      "Mao":     3,
+      "Chen":    4,
+      "Si":      5,
+      "Wu":      6,
+      "Wei":     7,
+      "Shen":    8,
+      "You":     9,
+      "Xu":      10,
+      "Hai":     11,
+      "Zi (2º)": 12
+    },
+
+    "observacoes": {
+      "duracao_zi_inicial": "5 minutos (00:00–04:59)",
+      "duracao_ramos_intermediarios": "10 minutos cada",
+      "duracao_zi_final": "5 minutos (01:55:00–01:59:59)",
+      "total_ciclo": "120 minutos (2 horas)",
+      "referencia": "O tronco do minuto é determinado pelo tronco da hora, assim como o tronco da hora é determinado pelo tronco do dia."
+    }
+  }
+}

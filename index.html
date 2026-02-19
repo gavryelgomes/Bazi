@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BaZi — Calendario Lunar de 1901 a 2060</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Noto+Serif+SC:wght@400;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/luxon/3.4.4/luxon.min.js"></script>
+<style>
+:root {
+  --c-madeira: #2ea85a; --c-fogo: #c94040; --c-terra: #b8892a; --c-metal: #8a8a9a; --c-agua: #3a6aaa;
+  --bg-madeira: rgba(46,168,90,0.15); --bg-fogo: rgba(201,64,64,0.15);
+  --bg-terra: rgba(184,137,42,0.15); --bg-metal: rgba(138,138,154,0.10); --bg-agua: rgba(58,106,170,0.17);
+  --bg: #0c0c11; --surface: #111118; --card: #15151d; --border: #1c1c28; --border2: #232333; --sep: rgba(255,255,255,0.06);
+  --gold: #c5a23e; --gold-dim: #7a6020;
+  --text: #d8d2c8; --text-2: #d8d2c8; --text-3: #d8d2c8;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; font-size:13px; min-height:100vh; -webkit-font-smoothing:antialiased; }
+
+/* PAGE */
+.page { max-width:788.782px; margin:0 auto; padding:36px 20px 80px; }
+
+/* HEADER */
+.site-header { text-align:center; margin-bottom:32px; }
+.site-header h1 { font-family:'Playfair Display',serif; font-size:clamp(18px,3vw,24px); font-weight:600; color:var(--text); letter-spacing:0.01em; margin-bottom:3px; }
+.site-header .sub { font-family:'Playfair Display',serif; font-style:italic; color:var(--text-3); font-size:12px; }
+
+/* FORM */
+.form-card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:20px 24px; margin-bottom:24px; }
+.form-row { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:12px; }
+.field { display:flex; flex-direction:column; gap:5px; flex:1; min-width:120px; }
+.field label { font-size:9px; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:var(--text-3); }
+.field input, .field select { background:var(--card); border:1px solid var(--border2); border-radius:6px; color:var(--text); font-family:'Inter',sans-serif; font-size:13px; padding:8px 11px; outline:none; transition:border-color 0.2s; width:100%; }
+.field input:focus,.field select:focus { border-color:var(--gold-dim); }
+.field select option { background:#1a1a26; }
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator { filter:invert(0.45) sepia(0.2); cursor:pointer; opacity:0.5; }
+input:disabled { opacity:0.2; cursor:not-allowed; }
+
+/* autocomplete */
+.loc-wrap { position:relative; }
+.ac-drop { position:absolute; top:calc(100% + 4px); left:0; right:0; background:#1a1a28; border:1px solid var(--border2); border-radius:8px; z-index:200; max-height:200px; overflow-y:auto; display:none; box-shadow:0 12px 40px rgba(0,0,0,0.65); }
+.ac-drop.open { display:block; }
+.ac-item { padding:8px 12px; cursor:pointer; font-size:12px; display:flex; gap:8px; align-items:center; transition:background 0.1s; border-bottom:1px solid rgba(255,255,255,0.03); }
+.ac-item:hover { background:rgba(197,162,62,0.07); }
+.ac-city { color:var(--text); } .ac-reg { color:var(--text-3); font-size:10px; }
+.ac-foot { padding:5px 12px; font-size:9px; color:var(--text-3); text-align:right; font-style:italic; }
+.loc-meta { margin-top:5px; font-size:10px; color:var(--text-3); display:flex; gap:10px; flex-wrap:wrap; font-style:italic; }
+.loc-meta .hi { color:var(--gold); font-style:normal; font-weight:500; }
+
+/* opts */
+.opts-row { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:12px; align-items:center; }
+.chk { display:flex; gap:5px; align-items:center; cursor:pointer; font-size:11px; color:var(--text-2); user-select:none; transition:color 0.15s; }
+.chk:hover { color:var(--text); }
+.chk input[type="checkbox"] { width:12px; height:12px; accent-color:var(--gold); }
+.solar-info { font-size:10px; color:var(--gold); font-style:italic; background:rgba(197,162,62,0.07); border:1px solid rgba(197,162,62,0.15); border-radius:4px; padding:2px 8px; display:none; }
+
+/* button */
+.btn-calc { width:100%; padding:10px; background:var(--gold); border:none; border-radius:7px; color:#09090e; font-family:'Inter',sans-serif; font-size:11px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; cursor:pointer; transition:opacity 0.2s,box-shadow 0.2s; box-shadow:0 2px 14px rgba(197,162,62,0.18); }
+.btn-calc:hover { opacity:0.86; box-shadow:0 4px 22px rgba(197,162,62,0.3); }
+.btn-calc:active { transform:scale(0.99); }
+.btn-sm { padding:8px; font-size:10px; }
+.err-msg { background:rgba(200,60,60,0.08); border:1px solid rgba(200,60,60,0.22); border-radius:6px; padding:9px 13px; color:#dd8080; font-size:12px; margin-top:9px; display:none; }
+
+/* LOADING */
+.loading { text-align:center; padding:30px; color:var(--text-3); font-style:italic; display:none; }
+.spin { display:inline-block; width:15px; height:15px; border:2px solid rgba(197,162,62,0.12); border-top-color:var(--gold); border-radius:50%; animation:spin 0.7s linear infinite; vertical-align:middle; margin-right:6px; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+/* RESULTS */
+#results { display:none; animation:fadeUp 0.4s ease; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+
+/* SECTION DIVIDER */
+.divider { display:flex; align-items:center; gap:10px; margin:20px 0; }
+.divider::before,.divider::after { content:''; flex:1; height:1px; background:var(--border2); }
+.divider span { color:var(--text-3); font-size:10px; opacity:0.5; }
+
+/* ===========================
+   MAIN LAYOUT: maps + luck
+=========================== */
+.maps-row {
+  display:flex;
+  gap:8px;
+  align-items:flex-start;
+}
+.maps-col { flex:1; min-width:0; display:flex; flex-direction:column; gap:8px; }
+
+/* ===========================
+   BAZI CHART TABLE
+=========================== */
+.map-wrap { background:var(--surface); border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+
+.map-header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:9px 14px; background:rgba(0,0,0,0.2); border-bottom:1px solid var(--border);
+}
+.map-header-title { font-size:9px; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:var(--text-3); }
+.map-header-info { font-family:'Playfair Display',serif; font-style:italic; font-size:11px; color:var(--text-2); }
+.map-header-year { font-size:11px; color:var(--gold); font-weight:500; }
+
+/* The actual grid table */
+.bazi-tbl { display:grid; width:100%; }
+
+/* Column */
+.bazi-col { display:flex; flex-direction:column; border-right:1px solid var(--sep); min-width:0; }
+.bazi-col:last-child { border-right:none; }
+
+/* Label row */
+.bc-label { padding:6px 4px; text-align:center; font-size:8.5px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:var(--text-3); background:rgba(0,0,0,0.12); border-bottom:1px solid var(--sep); }
+
+/* HS row */
+.bc-hs { padding:14px 6px 10px; text-align:center; display:flex; flex-direction:column; align-items:center; gap:4px; border-bottom:1px solid var(--sep); }
+.bc-hs-char { font-family:'Noto Serif SC',serif; font-size:38px; line-height:1; }
+.bc-hs-name { font-size:8.5px; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; opacity:0.85; }
+.bc-hs-deus { font-size:7px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; padding:2px 6px; border-radius:3px; margin-top:2px; }
+
+/* EB row */
+.bc-eb { padding:14px 6px 10px; text-align:center; display:flex; flex-direction:column; align-items:center; gap:4px; border-bottom:1px solid var(--sep); }
+.bc-eb-char { font-family:'Noto Serif SC',serif; font-size:38px; line-height:1; }
+.bc-eb-name { font-size:8.5px; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; opacity:0.85; }
+
+/* HHS row */
+.bc-hhs { display:flex; min-height:26px; }
+.bc-hhs-cell { flex:1; display:flex; align-items:center; justify-content:center; padding:4px 2px; font-size:7.5px; font-weight:600; letter-spacing:0.02em; text-align:center; border-right:1px solid rgba(255,255,255,0.04); }
+.bc-hhs-cell:last-child { border-right:none; }
+
+/* Element bg/text */
+.bg-madeira { background:var(--bg-madeira); } .elem-madeira { color:var(--c-madeira); }
+.bg-fogo    { background:var(--bg-fogo); }    .elem-fogo    { color:var(--c-fogo); }
+.bg-terra   { background:var(--bg-terra); }   .elem-terra   { color:var(--c-terra); }
+.bg-metal   { background:var(--bg-metal); }   .elem-metal   { color:var(--c-metal); }
+.bg-agua    { background:var(--bg-agua); }    .elem-agua    { color:var(--c-agua); }
+
+/* ===========================
+   LUCK PILLAR (right sidebar)
+=========================== */
+.luck-sidebar { width:120px; flex:0 0 120px; }
+.luck-wrap { background:var(--surface); border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+.luck-header { padding:9px 8px; background:rgba(0,0,0,0.2); border-bottom:1px solid var(--border); text-align:center; }
+.luck-header-title { font-size:8.5px; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:var(--text-3); display:block; margin-bottom:2px; }
+.luck-header-range { font-size:10px; color:var(--gold); font-weight:500; }
+
+.luck-col { display:flex; flex-direction:column; }
+.luck-hs { padding:12px 8px 8px; text-align:center; display:flex; flex-direction:column; align-items:center; gap:3px; border-bottom:1px solid var(--sep); }
+.luck-hs-char { font-family:'Noto Serif SC',serif; font-size:32px; line-height:1; }
+.luck-hs-name { font-size:8px; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; opacity:0.85; }
+.luck-hs-deus { font-size:6.5px; font-weight:700; padding:1px 5px; border-radius:3px; text-transform:uppercase; letter-spacing:0.05em; margin-top:1px; }
+.luck-eb { padding:10px 8px 8px; text-align:center; display:flex; flex-direction:column; align-items:center; gap:3px; border-bottom:1px solid var(--sep); }
+.luck-eb-char { font-family:'Noto Serif SC',serif; font-size:26px; line-height:1; }
+.luck-eb-name { font-size:8px; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; opacity:0.85; }
+.luck-hhs { display:flex; min-height:22px; }
+.luck-hhs-cell { flex:1; display:flex; align-items:center; justify-content:center; padding:3px 1px; font-size:7px; font-weight:600; text-align:center; border-right:1px solid rgba(255,255,255,0.04); }
+.luck-hhs-cell:last-child { border-right:none; }
+.luck-age { text-align:center; font-size:13px; font-weight:600; color:var(--gold); padding:6px 4px 8px; border-top:1px solid var(--border); letter-spacing:0.04em; }
+
+/* ===========================
+   GRANDE SORTE ROW
+=========================== */
+.gs-section { margin-bottom:20px; }
+.gs-title { font-family:'Playfair Display',serif; font-size:15px; font-weight:600; color:var(--text); margin-bottom:3px; }
+.gs-sub { font-family:'Playfair Display',serif; font-style:italic; color:var(--text-3); font-size:11px; margin-bottom:12px; }
+
+.gs-row { display:flex; gap:6px; overflow-x:auto; padding-bottom:6px; scrollbar-width:thin; scrollbar-color:var(--border2) transparent; }
+
+.gs-card { flex:0 0 86px; background:var(--card); border:1px solid var(--border2); border-radius:8px; overflow:hidden; transition:transform 0.18s,box-shadow 0.18s; cursor:default; }
+.gs-card:hover { transform:translateY(-2px); box-shadow:0 8px 22px rgba(0,0,0,0.45); }
+.gs-card.gs-active { border-color:var(--gold-dim); box-shadow:0 0 0 1px var(--gold-dim),0 0 12px rgba(197,162,62,0.12); }
+.gs-year { text-align:center; font-size:9px; font-weight:500; color:var(--text-3); padding:4px 3px 3px; border-bottom:1px solid var(--sep); letter-spacing:0.04em; }
+.gs-hs { padding:7px 4px 5px; text-align:center; display:flex; flex-direction:column; align-items:center; gap:2px; }
+.gs-hs .ch { font-family:'Noto Serif SC',serif; font-size:21px; line-height:1; }
+.gs-hs .nm { font-size:7px; font-weight:600; letter-spacing:0.05em; text-transform:uppercase; opacity:0.82; }
+.gs-hs .db { font-size:6px; font-weight:700; padding:1px 4px; border-radius:3px; text-transform:uppercase; letter-spacing:0.04em; margin-top:1px; }
+.gs-eb { padding:5px 4px 5px; text-align:center; display:flex; flex-direction:column; align-items:center; gap:2px; border-top:1px solid rgba(255,255,255,0.04); }
+.gs-eb .ch { font-family:'Noto Serif SC',serif; font-size:17px; line-height:1; }
+.gs-eb .nm { font-size:7px; font-weight:600; letter-spacing:0.05em; text-transform:uppercase; opacity:0.82; }
+.gs-hhs { display:flex; border-top:1px solid rgba(255,255,255,0.04); min-height:20px; overflow:hidden; }
+.gs-hhs-cell { flex:1; display:flex; align-items:center; justify-content:center; padding:3px 1px; font-size:6.5px; font-weight:600; text-align:center; border-right:1px solid rgba(255,255,255,0.04); }
+.gs-hhs-cell:last-child { border-right:none; }
+.gs-age { text-align:center; font-size:10px; font-weight:600; color:var(--gold); padding:4px 3px 5px; border-top:1px solid var(--border); letter-spacing:0.04em; }
+
+/* ===========================
+   COMPARE PANEL
+=========================== */
+.cmp-panel { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:18px 22px; margin-bottom:12px; }
+.cmp-panel-title { font-size:10px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--text-3); margin-bottom:14px; }
+
+/* RESPONSIVE */
+@media(max-width:700px){
+  .maps-row { flex-direction:column; }
+  .luck-sidebar { width:100%; flex:none; }
+  .luck-wrap { display:flex; gap:0; }
+}
+
+/* FORMS ROW */
+.forms-row { display:flex; gap:16px; align-items:flex-start; margin-bottom:24px; }
+.forms-row .form-card { flex:1; margin-bottom:0; }
+.cmp-form-card { flex:1; }
+.cmp-toggle-bar { display:flex; align-items:center; gap:8px; margin-bottom:0; }
+.cmp-toggle-bar label { display:flex; align-items:center; gap:6px; font-size:10px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--text-3); cursor:pointer; user-select:none; }
+.cmp-toggle-bar input[type="checkbox"] { accent-color:var(--gold); width:14px; height:14px; }
+.cmp-fields { display:none; margin-top:14px; }
+.cmp-fields.visible { display:block; }
+.cmp-divider-line { border:none; border-top:1px solid var(--border2); margin:12px 0; }
+@media(max-width:900px){ .forms-row { flex-direction:column; } }
+footer { text-align:center; margin-top:50px; color:var(--text-3); font-size:11px; font-style:italic; font-family:'Playfair Display',serif; }
+</style>
+</head>
+<body>
+<div class="page">
+
+<header class="site-header">
+  <h1>Versão Beta</h1>
+  <p class="sub">Feita por Gomes</p>
+</header>
+
+<!-- FORMS ROW: main + compare side by side -->
+<div class="forms-row">
+
+  <!-- MAIN FORM -->
+  <div class="form-card">
+    <div class="form-row">
+      <div class="field" style="min-width:150px">
+        <label>Data de Nascimento</label>
+        <input type="date" id="birth-date" min="1901-01-01" max="2060-12-31">
+      </div>
+      <div class="field" style="min-width:120px">
+        <label>Hora</label>
+        <input type="time" id="birth-time" value="12:00">
+      </div>
+      <div class="field" style="min-width:110px">
+        <label>Gênero</label>
+        <select id="genero-select">
+          <option value="M">Homem</option>
+          <option value="F">Mulher</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="field" style="flex:1">
+        <label>Local de Nascimento</label>
+        <div class="loc-wrap">
+          <input type="text" id="location-input" placeholder="cidade, país..." autocomplete="off">
+          <div class="ac-drop" id="ac-dropdown"></div>
+          <div class="loc-meta" id="location-meta"></div>
+        </div>
+      </div>
+    </div>
+    <div class="opts-row">
+      <label class="chk" id="lbl-unknown-hour"><input type="checkbox" id="unknown-hour"> Hora desconhecida</label>
+      <label class="chk" id="lbl-solar-time"><input type="checkbox" id="solar-time" checked> Hora Solar Real</label>
+      <label class="chk" id="lbl-minuto-pilar"><input type="checkbox" id="minuto-pilar"> Pilar do Minuto</label>
+      <span class="solar-info" id="solar-correction-badge"></span>
+    </div>
+  </div>
+
+  <!-- COMPARE FORM (side by side) -->
+  <div class="form-card cmp-form-card">
+    <div class="cmp-toggle-bar">
+      <label>
+        <input type="checkbox" id="enable-compare" onchange="toggleCompareForm()">
+        ⚖ Mapa de Comparação
+      </label>
+    </div>
+    <div class="cmp-fields" id="cmp-fields">
+      <hr class="cmp-divider-line">
+      <div class="form-row">
+        <div class="field" style="min-width:140px">
+          <label>Data de Nascimento</label>
+          <input type="date" id="cmp-date" min="1901-01-01" max="2060-12-31">
+        </div>
+        <div class="field" style="min-width:110px">
+          <label>Hora</label>
+          <input type="time" id="cmp-time" value="12:00">
+        </div>
+        <div class="field" style="min-width:100px">
+          <label>Gênero</label>
+          <select id="cmp-genero">
+            <option value="M">Homem</option>
+            <option value="F">Mulher</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field" style="flex:1">
+          <label>Local de Nascimento</label>
+          <div class="loc-wrap">
+            <input type="text" id="cmp-location-input" placeholder="cidade, país..." autocomplete="off">
+            <div class="ac-drop" id="cmp-ac-dropdown"></div>
+            <div class="loc-meta" id="cmp-location-meta"></div>
+          </div>
+        </div>
+      </div>
+      <div class="opts-row">
+        <label class="chk"><input type="checkbox" id="cmp-unknown-hour"> Hora desconhecida</label>
+        <label class="chk"><input type="checkbox" id="cmp-solar-time" checked> Hora Solar Real</label>
+        <label class="chk"><input type="checkbox" id="cmp-minuto-pilar"> Pilar do Minuto</label>
+        <span class="solar-info" id="cmp-solar-badge"></span>
+      </div>
+    </div>
+  </div>
+
+</div><!-- .forms-row -->
+
+<!-- SINGLE CALCULATE BUTTON + ERROR -->
+<div style="margin-bottom:24px;">
+  <button class="btn-calc" onclick="calculateAll()">✦ Calcular Mapa BaZi ✦</button>
+  <div class="err-msg" id="error-msg"></div>
+</div>
+
+<div class="loading" id="loading"><span class="spin"></span>Carregando calendário...</div>
+
+<!-- RESULTS -->
+<div id="results">
+
+  <!-- Maps row: [main map + compare map] | [luck sidebar] -->
+  <div class="maps-row">
+
+    <!-- LEFT COLUMN: main map on top, compare below -->
+    <div class="maps-col">
+
+      <!-- Main map -->
+      <div class="map-wrap">
+        <div class="map-header">
+          <span class="map-header-title">Mapa Natal</span>
+          <span class="map-header-info" id="birth-info-text"></span>
+          <span class="map-header-year" id="birth-chinese-text"></span>
+        </div>
+        <div class="bazi-tbl" id="pilares-grid"></div>
+      </div>
+
+      <!-- Compare map (appears after calculating) -->
+      <div id="cmp-results" style="display:none">
+        <div class="map-wrap">
+          <div class="map-header">
+            <span class="map-header-title">Mapa de Comparação</span>
+            <span class="map-header-info" id="cmp-birth-info-text"></span>
+            <span class="map-header-year" id="cmp-birth-chinese-text"></span>
+          </div>
+          <div class="bazi-tbl" id="cmp-pilares-grid"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN: luck sidebar (main) -->
+    <div class="luck-sidebar" id="luck-sidebar" style="display:none">
+      <div class="luck-wrap">
+        <div class="luck-header">
+          <span class="luck-header-title">大運 Atual</span>
+          <span class="luck-header-range" id="luck-year-range"></span>
+        </div>
+        <div class="luck-col" id="luck-pilar-container"></div>
+      </div>
+    </div>
+
+  </div><!-- .maps-row -->
+
+  <!-- GRANDE SORTE -->
+  <div class="divider"><span>✦</span></div>
+  <div class="gs-section" id="tayun-section" style="display:none">
+    <div class="gs-title">大運 — Pilares da Sorte</div>
+    <p class="gs-sub" id="tayun-subtitle"></p>
+    <div class="gs-row" id="tayun-grid"></div>
+  </div>
+
+
+</div><!-- #results -->
+
+</div><!-- .page -->
+<footer>BaZi — 八字 &nbsp;|&nbsp; Calendário Chinês 1901–2060</footer>
+
+<script>
+// ══════ DATA ══════
+const ELEMENTOS = {
+  "Madeira Yang":{simbolo:"甲",cor:"#2ea85a",elem:"madeira",yy:"Yang"},
+  "Madeira Yin": {simbolo:"乙",cor:"#2ea85a",elem:"madeira",yy:"Yin"},
+  "Fogo Yang":   {simbolo:"丙",cor:"#c94040",elem:"fogo",   yy:"Yang"},
+  "Fogo Yin":    {simbolo:"丁",cor:"#c94040",elem:"fogo",   yy:"Yin"},
+  "Terra Yang":  {simbolo:"戊",cor:"#b8892a",elem:"terra",  yy:"Yang"},
+  "Terra Yin":   {simbolo:"己",cor:"#b8892a",elem:"terra",  yy:"Yin"},
+  "Metal Yang":  {simbolo:"庚",cor:"#8a8a9a",elem:"metal",  yy:"Yang"},
+  "Metal Yin":   {simbolo:"辛",cor:"#8a8a9a",elem:"metal",  yy:"Yin"},
+  "Água Yang":   {simbolo:"壬",cor:"#3a6aaa",elem:"agua",   yy:"Yang"},
+  "Água Yin":    {simbolo:"癸",cor:"#3a6aaa",elem:"agua",   yy:"Yin"}
+};
+const RAMOS = {
+  "Rato":{simbolo:"子",elem:"agua"},"Boi":{simbolo:"丑",elem:"terra"},
+  "Tigre":{simbolo:"寅",elem:"madeira"},"Coelho":{simbolo:"卯",elem:"madeira"},
+  "Dragão":{simbolo:"辰",elem:"terra"},"Serpente":{simbolo:"巳",elem:"fogo"},
+  "Cavalo":{simbolo:"午",elem:"fogo"},"Cabra":{simbolo:"未",elem:"terra"},
+  "Macaco":{simbolo:"申",elem:"metal"},"Galo":{simbolo:"酉",elem:"metal"},
+  "Cão":{simbolo:"戌",elem:"terra"},"Porco":{simbolo:"亥",elem:"agua"}
+};
+RAMOS["Cachorro"]=RAMOS["Cão"];
+
+const RAIZES = {
+  "Rato":   {principal:{t:"Água Yin",p:100}},
+  "Boi":    {principal:{t:"Terra Yin",p:60},secundaria:{t:"Metal Yin",p:20},residual:{t:"Água Yin",p:20}},
+  "Tigre":  {principal:{t:"Madeira Yang",p:60},secundaria:{t:"Fogo Yang",p:20},residual:{t:"Terra Yang",p:20}},
+  "Coelho": {principal:{t:"Madeira Yin",p:100}},
+  "Dragão": {principal:{t:"Terra Yang",p:60},secundaria:{t:"Água Yin",p:20},residual:{t:"Madeira Yin",p:20}},
+  "Serpente":{principal:{t:"Fogo Yang",p:60},secundaria:{t:"Metal Yang",p:20},residual:{t:"Terra Yang",p:20}},
+  "Cavalo": {principal:{t:"Fogo Yin",p:65},secundaria:{t:"Terra Yin",p:35}},
+  "Cabra":  {principal:{t:"Terra Yin",p:60},secundaria:{t:"Madeira Yin",p:20},residual:{t:"Fogo Yin",p:20}},
+  "Macaco": {principal:{t:"Metal Yang",p:60},secundaria:{t:"Água Yang",p:20},residual:{t:"Terra Yang",p:20}},
+  "Galo":   {principal:{t:"Metal Yin",p:100}},
+  "Cão":    {principal:{t:"Terra Yang",p:60},secundaria:{t:"Fogo Yin",p:20},residual:{t:"Metal Yin",p:20}},
+  "Porco":  {principal:{t:"Água Yang",p:65},secundaria:{t:"Madeira Yang",p:35}}
+};
+RAIZES["Cachorro"]=RAIZES["Cão"];
+
+const TRONCOS = ["Madeira Yang","Madeira Yin","Fogo Yang","Fogo Yin","Terra Yang","Terra Yin","Metal Yang","Metal Yin","Água Yang","Água Yin"];
+const ANIMAIS = ["Rato","Boi","Tigre","Coelho","Dragão","Serpente","Cavalo","Cabra","Macaco","Galo","Cão","Porco"];
+const INI_DIA = {"Madeira Yang":"Madeira Yang","Terra Yin":"Madeira Yang","Madeira Yin":"Fogo Yang","Metal Yang":"Fogo Yang","Fogo Yang":"Terra Yang","Metal Yin":"Terra Yang","Fogo Yin":"Metal Yang","Água Yang":"Metal Yang","Terra Yang":"Água Yang","Água Yin":"Água Yang"};
+const INI_HORA = {"Madeira Yang":"Madeira Yang","Terra Yin":"Madeira Yang","Madeira Yin":"Fogo Yang","Metal Yang":"Fogo Yang","Fogo Yang":"Terra Yang","Metal Yin":"Terra Yang","Fogo Yin":"Metal Yang","Água Yang":"Metal Yang","Terra Yang":"Água Yang","Água Yin":"Água Yang"};
+
+// ══════ 10 DEUSES ══════
+const GERA={agua:'madeira',madeira:'fogo',fogo:'terra',terra:'metal',metal:'agua'};
+const CTRL={agua:'fogo',fogo:'metal',metal:'madeira',madeira:'terra',terra:'agua'};
+function getDeus(tronco, mestre) {
+  if(!tronco||!mestre||tronco==='—'||mestre==='—') return null;
+  const dM=ELEMENTOS[mestre], dT=ELEMENTOS[tronco];
+  if(!dM||!dT) return null;
+  const eM=dM.elem,eT=dT.elem,same=dM.yy===dT.yy;
+  if(tronco===mestre) return {nome:'Mestre do Dia',cls:'mestre-dia'};
+  if(eT===eM) return {nome:same?'Paralelo Justo':'Paralelo Injusto',cls:'paralelo'};
+  if(GERA[eT]===eM) return {nome:same?'Sustentação Injusta':'Sustentação Justa',cls:'sust'};
+  if(GERA[eM]===eT) return {nome:same?'Produção Justa':'Produção Injusta',cls:'prod'};
+  if(CTRL[eT]===eM) return {nome:same?'Poder Injusto':'Poder Justo',cls:'poder'};
+  if(CTRL[eM]===eT) return {nome:same?'Riqueza Abrupta':'Riqueza Justa',cls:'riq'};
+  return null;
+}
+
+// ══════ STATE ══════
+let LOC={lat:null,lng:null,tz:null,utcOff:null,name:''};
+let CLOC={lat:null,lng:null,tz:null,utcOff:null,name:''};
+
+// ══════ DATA LOAD ══════
+async function loadData(){
+  try{
+    const r=await fetch('data/Calendario.json'); const d=await r.json();
+    window.calMap={};
+    for(const e of d) window.calMap[e.data_gregoriana]=e;
+  }catch(e){ showErr('Erro ao carregar o calendário.'); }
+}
+
+// ══════ AUTOCOMPLETE ══════
+function setupAC(inId,ddId,state,metaId){
+  const inp=document.getElementById(inId), dd=document.getElementById(ddId);
+  let tmr=null;
+  inp.addEventListener('input',function(){
+    const q=this.value.trim(); clearTimeout(tmr);
+    if(q.length<2){dd.classList.remove('open');return;}
+    tmr=setTimeout(async()=>{
+      try{
+        const res=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&addressdetails=1&limit=6&featuretype=city`,{headers:{'Accept-Language':'pt-BR,pt,en'}});
+        const data=await res.json();
+        if(!data.length){dd.classList.remove('open');return;}
+        let html='';
+        for(const r of data){
+          const a=r.address||{};
+          const city=a.city||a.town||a.village||a.municipality||r.display_name.split(',')[0];
+          const reg=[a.state,a.country].filter(Boolean).join(', ');
+          html+=`<div class="ac-item" data-lat="${r.lat}" data-lng="${r.lon}" data-name="${esc(city)}" data-reg="${esc(reg)}"><span>📍</span><span class="ac-city">${esc(city)}</span><span class="ac-reg">${esc(reg)}</span></div>`;
+        }
+        html+=`<div class="ac-foot">OpenStreetMap / Nominatim</div>`;
+        dd.innerHTML=html; dd.classList.add('open');
+        dd.querySelectorAll('.ac-item').forEach(el=>el.addEventListener('mousedown',async()=>{
+          const lat=parseFloat(el.dataset.lat),lng=parseFloat(el.dataset.lng);
+          const name=el.dataset.name+(el.dataset.reg?', '+el.dataset.reg:'');
+          inp.value=name; dd.classList.remove('open');
+          await setLoc(lat,lng,name,state,metaId);
+        }));
+      }catch(e){dd.classList.remove('open');}
+    },350);
+  });
+  inp.addEventListener('blur',()=>setTimeout(()=>dd.classList.remove('open'),200));
+}
+
+async function setLoc(lat,lng,name,state,metaId){
+  state.lat=lat; state.lng=lng; state.name=name;
+  const m=document.getElementById(metaId);
+  m.innerHTML=`<span>Lat <b class="hi">${lat.toFixed(4)}</b></span><span>Lng <b class="hi">${lng.toFixed(4)}</b></span><span>Buscando fuso…</span>`;
+  try{
+    const r=await fetch(`https://timeapi.io/api/TimeZone/coordinate?latitude=${lat}&longitude=${lng}`);
+    const d=await r.json(); state.tz=d.timeZone;
+    m.innerHTML=`<span>Lat <b class="hi">${lat.toFixed(4)}</b></span><span>Lng <b class="hi">${lng.toFixed(4)}</b></span><span>🕐 <b class="hi">${d.timeZone}</b></span>`;
+  }catch(e){
+    const oh=Math.round(lng/15); state.tz=null; state.utcOff=oh*60;
+    m.innerHTML=`<span>Lat <b class="hi">${lat.toFixed(4)}</b></span><span>Lng <b class="hi">${lng.toFixed(4)}</b></span><span>UTC${oh>=0?'+':''}${oh}</span>`;
+  }
+}
+
+// ══════ SOLAR TIME ══════
+function solarCorr(dateISO,timeStr,lat,lng,tz,fbOff){
+  const{DateTime}=luxon; let off;
+  if(tz){try{off=DateTime.fromISO(`${dateISO}T${timeStr}`,{zone:tz}).offset;}catch(e){tz=null;}}
+  if(!tz) off=fbOff!==null?fbOff:Math.round(lng/15)*60;
+  const corr=(lng-(off/60)*15)*4;
+  const dst=tz?DateTime.fromISO(`${dateISO}T${timeStr}`,{zone:tz}).isInDST:false;
+  return{corr:Math.round(corr),dst};
+}
+function addMin(dateISO,timeStr,add){
+  const[h,m]=timeStr.split(':').map(Number); let tot=h*60+m+add,off=0;
+  while(tot<0){tot+=1440;off--;} while(tot>=1440){tot-=1440;off++;}
+  const nh=Math.floor(tot/60),nm=tot%60;
+  const nt=`${String(nh).padStart(2,'0')}:${String(nm).padStart(2,'0')}`;
+  let nd=dateISO;
+  if(off){const d=new Date(dateISO+'T12:00:00');d.setDate(d.getDate()+off);nd=d.toISOString().slice(0,10);}
+  return{d:nd,t:nt};
+}
+
+// ══════ HELPERS ══════
+function showErr(m){const e=document.getElementById('error-msg');e.textContent=m;e.style.display='block';}
+function hideErr(){document.getElementById('error-msg').style.display='none';}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function norm(iso){const[y,m,d]=iso.split('-');return`${d.padStart(2,'0')}/${m.padStart(2,'0')}/${y}`;}
+
+function parseMes(s){
+  const ab={"Me":"Metal","A":"Água","F":"Fogo","Md":"Madeira","T":"Terra"};
+  const p=s.trim().split(/\s+/);
+  if(p.length<3)return{a:p[0]||s,t:null};
+  return{a:p[0],t:`${ab[p[1]]||p[1]} ${p[2]==='+'?'Yang':'Yin'}`};
+}
+function parseAno(s){
+  const m=s.match(/\d{4}\s*[–-]\s*(.+?)\s+de\s+(.+?)\s+(Yang|Yin)\s*[–-]/);
+  if(m)return{a:m[1],t:`${m[2]} ${m[3]}`};
+  return{a:s,t:null};
+}
+function horaRamo(h,m){
+  const t=h*60+m;
+  const L=[{a:"Rato",i:0},{a:"Boi",i:1},{a:"Tigre",i:2},{a:"Coelho",i:3},{a:"Dragão",i:4},{a:"Serpente",i:5},{a:"Cavalo",i:6},{a:"Cabra",i:7},{a:"Macaco",i:8},{a:"Galo",i:9},{a:"Cão",i:10},{a:"Porco",i:11},{a:"Rato",i:12}];
+  if(t<60)return L[0];if(t<180)return L[1];if(t<300)return L[2];if(t<420)return L[3];
+  if(t<540)return L[4];if(t<660)return L[5];if(t<780)return L[6];if(t<900)return L[7];
+  if(t<1020)return L[8];if(t<1140)return L[9];if(t<1260)return L[10];if(t<1380)return L[11];
+  return L[12];
+}
+function troncoHora(td,idx){return TRONCOS[(TRONCOS.indexOf(INI_DIA[td]||"Madeira Yang")+idx)%10];}
+function minutoRamo(h,m){
+  const tot=h*60+m;
+  const bs=[23,1,3,5,7,9,11,13,15,17,19,21];
+  let bsh=23;
+  for(let i=bs.length-1;i>=0;i--){
+    if(bs[i]===23){if(tot>=23*60||tot<60){bsh=23;break;}}
+    else if(tot>=bs[i]*60&&tot<bs[i]*60+120){bsh=bs[i];break;}
+  }
+  const off=bsh===23?(tot>=23*60?tot-23*60:tot+(24-23)*60):tot-bsh*60;
+  let ri=0;
+  if(off<5)ri=0;else if(off<15)ri=1;else if(off<25)ri=2;else if(off<35)ri=3;
+  else if(off<45)ri=4;else if(off<55)ri=5;else if(off<65)ri=6;else if(off<75)ri=7;
+  else if(off<85)ri=8;else if(off<95)ri=9;else if(off<105)ri=10;else if(off<115)ri=11;else ri=12;
+  return{a:ANIMAIS[ri%12],i:ri};
+}
+function troncoMin(th,idx){return TRONCOS[(TRONCOS.indexOf(INI_HORA[th]||"Madeira Yang")+idx)%10];}
+
+// ══════ RENDER BAZI TABLE ══════
+function renderHHS(ramoNorm){
+  const raizes=RAIZES[ramoNorm]||{};
+  return ['residual','secundaria','principal'].filter(k=>raizes[k]).map(k=>{
+    const r=raizes[k]; const re=ELEMENTOS[r.t];
+    const reElem=re?re.elem:'terra'; const reCor=re?re.cor:'#888';
+    const nm=r.t.replace('Madeira','Mad');
+    return `<div class="bc-hhs-cell bg-${reElem} elem-${reElem}" style="color:${reCor}">${nm}</div>`;
+  }).join('');
+}
+
+function renderCol(label,tronco,ramo,mestre){
+  const td=ELEMENTOS[tronco]||{simbolo:'?',cor:'#888',elem:'terra'};
+  const ramoN=ramo==='Cachorro'?'Cão':ramo;
+  const rd=RAMOS[ramoN]||{simbolo:'?',elem:'terra'};
+  let d=getDeus(tronco,mestre);
+  if(d&&d.nome==='Mestre do Dia'&&label!=='Dia') d={nome:'Paralelo Justo',cls:'paralelo'};
+  const deusH=d?`<span class="bc-hs-deus" style="color:${d.cls==='mestre-dia'?'var(--gold)':td.cor}">${d.nome}</span>`:'';
+  const hhsH=renderHHS(ramoN);
+  return `<div class="bazi-col">
+    <div class="bc-label">${label}</div>
+    <div class="bc-hs bg-${td.elem}">
+      <span class="bc-hs-char elem-${td.elem}">${td.simbolo}</span>
+      <span class="bc-hs-name elem-${td.elem}">${tronco||'—'}</span>
+      ${deusH}
+    </div>
+    <div class="bc-eb bg-${rd.elem}">
+      <span class="bc-eb-char elem-${rd.elem}">${rd.simbolo}</span>
+      <span class="bc-eb-name elem-${rd.elem}">${ramoN}</span>
+    </div>
+    <div class="bc-hhs">${hhsH}</div>
+  </div>`;
+}
+
+function renderTable(pillars,gridId){
+  const g=document.getElementById(gridId);
+  g.style.gridTemplateColumns=`repeat(${pillars.length},1fr)`;
+  g.innerHTML=pillars.map(p=>renderCol(p.l,p.t,p.r,p.m)).join('');
+}
+
+// ══════ RENDER LUCK SIDEBAR ══════
+function renderLuckHHS(ramoN){
+  const raizes=RAIZES[ramoN]||{};
+  return ['residual','secundaria','principal'].filter(k=>raizes[k]).map(k=>{
+    const r=raizes[k]; const re=ELEMENTOS[r.t];
+    const e=re?re.elem:'terra'; const c=re?re.cor:'#888';
+    return `<div class="luck-hhs-cell bg-${e} elem-${e}" style="color:${c}">${r.t.replace('Madeira','Mad')}</div>`;
+  }).join('');
+}
+
+function renderLuckSidebar(pilar,range,containerId,sidebarId,rangeId){
+  if(!pilar){document.getElementById(sidebarId).style.display='none';return;}
+  const{tronco,ramo,idade,mestre}=pilar;
+  const td=ELEMENTOS[tronco]||{simbolo:'?',cor:'#888',elem:'terra'};
+  const ramoN=ramo==='Cachorro'?'Cão':ramo;
+  const rd=RAMOS[ramoN]||{simbolo:'?',elem:'terra'};
+  let d=getDeus(tronco,mestre);
+  if(d&&d.nome==='Mestre do Dia') d={nome:'Paralelo Justo',cls:'paralelo'};
+  const deusH=d?`<span class="luck-hs-deus" style="color:${td.cor}">${d.nome}</span>`:'';
+  const hhsH=renderLuckHHS(ramoN);
+  document.getElementById(rangeId).textContent=range;
+  document.getElementById(containerId).innerHTML=`
+    <div class="luck-hs bg-${td.elem}">
+      <span class="luck-hs-char elem-${td.elem}">${td.simbolo}</span>
+      <span class="luck-hs-name elem-${td.elem}">${tronco}</span>
+      ${deusH}
+    </div>
+    <div class="luck-eb bg-${rd.elem}">
+      <span class="luck-eb-char elem-${rd.elem}">${rd.simbolo}</span>
+      <span class="luck-eb-name elem-${rd.elem}">${ramoN}</span>
+    </div>
+    <div class="luck-hhs">${hhsH}</div>
+    <div class="luck-age">${idade} ✦</div>`;
+  document.getElementById(sidebarId).style.display='flex';
+}
+
+// ══════ TA YUN ══════
+function parseBRDate(s){const[d,m,y]=s.split('/').map(Number);return new Date(y,m-1,d);}
+function findJie(birthISO,fwd){
+  const[y,mo,d]=birthISO.split('-').map(Number);
+  const birth=new Date(y,mo-1,d);
+  const keys=Object.keys(window.calMap).sort();
+  let best=null,bd=Infinity;
+  for(const k of keys){
+    const e=window.calMap[k]; if(!e.jie) continue;
+    const dt=parseBRDate(k); const diff=(dt-birth)/86400000;
+    if(fwd&&diff>0&&diff<bd){best={days:diff};bd=diff;}
+    else if(!fwd&&diff<0&&Math.abs(diff)<bd){best={days:Math.abs(diff)};bd=Math.abs(diff);}
+  }
+  return best;
+}
+function calcTaYun(birthISO,genero,ta,tm,rm){
+  const ai=TRONCOS.indexOf(ta); if(ai===-1) return null;
+  const yang=(ai%2===0);
+  const fwd=genero==='M'?yang:!yang;
+  const jie=findJie(birthISO,fwd); if(!jie) return null;
+  const years=Math.floor(jie.days/3), days=Math.round((jie.days%3)*120);
+  const tMi=TRONCOS.indexOf(tm), rMi=ANIMAIS.indexOf(rm==='Cachorro'?'Cão':rm);
+  if(tMi===-1||rMi===-1) return null;
+  const[yB]=birthISO.split('-').map(Number);
+  const pillars=[];
+  for(let i=1;i<=8;i++){
+    const tI=fwd?(tMi+i)%10:((tMi-i)%10+10)%10;
+    const rI=fwd?(rMi+i)%12:((rMi-i)%12+12)%12;
+    const age=years+(i-1)*10;
+    pillars.push({tronco:TRONCOS[tI],ramo:ANIMAIS[rI],idade:age,ano:yB+age});
+  }
+  return{years,days,fwd,pillars,yang};
+}
+
+// ══════ RENDER GS CARD ══════
+function renderGSCard(tronco,ramo,ano,idade,cur,mestre){
+  const td=ELEMENTOS[tronco]||{simbolo:'?',cor:'#888',elem:'terra'};
+  const rN=ramo==='Cachorro'?'Cão':ramo;
+  const rd=RAMOS[rN]||{simbolo:'?',elem:'terra'};
+  const raizes=RAIZES[rN]||{};
+  let d=getDeus(tronco,mestre);
+  if(d&&d.nome==='Mestre do Dia') d={nome:'Paralelo Justo',cls:'paralelo'};
+  const dH=d?`<span class="db" style="color:${td.cor}">${d.nome}</span>`:'';
+  const hhsH=['residual','secundaria','principal'].filter(k=>raizes[k]).map(k=>{
+    const r=raizes[k]; const re=ELEMENTOS[r.t];
+    const e=re?re.elem:'terra'; const c=re?re.cor:'#888';
+    return `<div class="gs-hhs-cell bg-${e} elem-${e}" style="color:${c}">${r.t.replace('Madeira','Mad')}</div>`;
+  }).join('');
+  return `<div class="gs-card${cur?' gs-active':''}">
+    <div class="gs-year">${ano}</div>
+    <div class="gs-hs bg-${td.elem}"><span class="ch elem-${td.elem}">${td.simbolo}</span><span class="nm elem-${td.elem}">${tronco}</span>${dH}</div>
+    <div class="gs-eb bg-${rd.elem}"><span class="ch elem-${rd.elem}">${rd.simbolo}</span><span class="nm elem-${rd.elem}">${rN}</span></div>
+    <div class="gs-hhs">${hhsH}</div>
+    <div class="gs-age">${idade}${cur?' ✦':''}</div>
+  </div>`;
+}
+
+function renderTaYun(res,genero,birthISO,mestre,prefix){
+  prefix=prefix||'';
+  const secId=prefix?prefix+'tayun-section':'tayun-section';
+  const subId=prefix?prefix+'tayun-subtitle':'tayun-subtitle';
+  const gridId=prefix?prefix+'tayun-grid':'tayun-grid';
+  if(!res){const s=document.getElementById(secId);if(s)s.style.display='none';return null;}
+  const{years,days,fwd,pillars,yang}=res;
+  const cy=new Date().getFullYear();
+  const gStr=genero==='M'?'Homem':'Mulher';
+  const jie=findJie(birthISO,fwd);
+  const jieInfo=jie?`· ${Math.round(jie.days)} dias até o jié`:'';
+  // Calculate exact start date of first luck pillar period
+  const [bY,bM,bD] = birthISO.split('-').map(Number);
+  const birthDate = new Date(bY, bM-1, bD);
+  const totalDays = years * 365 + days;
+  const startDate = new Date(birthDate.getTime() + totalDays * 86400000);
+  const startStr = `${String(startDate.getDate()).padStart(2,'0')}/${String(startDate.getMonth()+1).padStart(2,'0')}/${startDate.getFullYear()}`;
+
+  const sub=document.getElementById(subId);
+  if(sub) sub.innerHTML=`${gStr} ${yang?'Yang':'Yin'} · Contagem ${fwd?'para frente':'para trás'} ${jieInfo}<br><em>Primeiro Período: ${years} anos${days>0?' e '+days+' dias':''} · Início em <strong>${startStr}</strong></em>`;
+  let ci=-1;
+  for(let i=pillars.length-1;i>=0;i--){if(pillars[i].ano<=cy){ci=i;break;}}
+  const grid=document.getElementById(gridId);
+  if(grid) grid.innerHTML=pillars.map((p,i)=>renderGSCard(p.tronco,p.ramo,p.ano,p.idade,i===ci,mestre)).join('');
+  const sec=document.getElementById(secId); if(sec) sec.style.display='block';
+  return{pillars,ci};
+}
+
+// ══════ EXTRAPOLATE ══════
+function extrapolate(iso){
+  if(!window.calMap) return null;
+  const[y,m,d]=iso.split('-').map(Number);
+  const ref=new Date(1901,0,1); const tgt=new Date(y,m-1,d);
+  const diff=Math.round((tgt-ref)/86400000);
+  const re=window.calMap['01/01/1901']; if(!re) return null;
+  const ti=TRONCOS.indexOf(re.elemento_do_mestre_do_dia);
+  const ri=ANIMAIS.indexOf(re.signo_do_dia==='Cachorro'?'Cão':re.signo_do_dia);
+  const nti=((ti+diff)%10+10)%10; const nri=((ri+diff)%12+12)%12;
+  const any=Object.values(window.calMap)[0];
+  return{
+    elemento_do_mestre_do_dia:TRONCOS[nti],signo_do_dia:ANIMAIS[nri],
+    ano_chines:any?any.ano_chines:String(y),mes_chines:any?any.mes_chines:'',
+    _extrapolated:true,
+    _mes_tronco:any?parseMes(any.mes_chines).t:'—',_mes_ramo:any?parseMes(any.mes_chines).a:'—',
+    _ano_tronco:any?parseAno(any.ano_chines).t:'—',_ano_ramo:any?parseAno(any.ano_chines).a:'—',
+  };
+}
+
+// ══════ BUILD PILLARS ══════
+function buildPillars(entry,h,m,unknownHr,minOn,tronco_dia){
+  const ramo_dia=entry.signo_do_dia;
+  let tm,rm,ta,ra;
+  if(entry._extrapolated){
+    tm=entry._mes_tronco||'—';rm=entry._mes_ramo||'—';ta=entry._ano_tronco||'—';ra=entry._ano_ramo||'—';
+  }else{
+    const mp=parseMes(entry.mes_chines);tm=mp.t||'—';rm=mp.a;
+    const ap=parseAno(entry.ano_chines);ta=ap.t||'—';ra=ap.a;
+  }
+  if(unknownHr){
+    return{pillars:[{l:'Dia',t:tronco_dia,r:ramo_dia,m:tronco_dia},{l:'Mês',t:tm,r:rm,m:tronco_dia},{l:'Ano',t:ta,r:ra,m:tronco_dia}],tm,rm,ta,ra};
+  }
+  const hr=horaRamo(h,m); const th=troncoHora(tronco_dia,hr.i); const rh=hr.a;
+  if(minOn){
+    const mr=minutoRamo(h,m); const tmin=troncoMin(th,mr.i);
+    return{pillars:[{l:'Minuto',t:tmin,r:mr.a,m:tronco_dia},{l:'Hora',t:th,r:rh,m:tronco_dia},{l:'Dia',t:tronco_dia,r:ramo_dia,m:tronco_dia},{l:'Mês',t:tm,r:rm,m:tronco_dia},{l:'Ano',t:ta,r:ra,m:tronco_dia}],tm,rm,ta,ra};
+  }
+  return{pillars:[{l:'Hora',t:th,r:rh,m:tronco_dia},{l:'Dia',t:tronco_dia,r:ramo_dia,m:tronco_dia},{l:'Mês',t:tm,r:rm,m:tronco_dia},{l:'Ano',t:ta,r:ra,m:tronco_dia}],tm,rm,ta,ra};
+}
+
+// ══════ TOGGLE COMPARE FORM ══════
+function toggleCompareForm(){
+  const en=document.getElementById('enable-compare').checked;
+  const fields=document.getElementById('cmp-fields');
+  if(en){fields.classList.add('visible');}else{fields.classList.remove('visible');document.getElementById('cmp-results').style.display='none';}
+}
+
+// ══════ CALCULATE ALL ══════
+async function calculateAll(){
+  await calculate();
+  if(document.getElementById('enable-compare').checked){
+    await calculateCompare();
+  }
+}
+
+// ══════ CALCULATE ══════
+async function calculate(){
+  hideErr();
+  const dv=document.getElementById('birth-date').value;
+  const tv=document.getElementById('birth-time').value;
+  const unk=document.getElementById('unknown-hour').checked;
+  const sol=document.getElementById('solar-time').checked;
+  if(!dv){showErr('Selecione uma data.');return;}
+  if(!window.calMap){showErr('Dados ainda carregando…');return;}
+
+  let ed=dv,et=tv||'12:00',sn='';
+  if(!unk&&sol&&LOC.lat!==null){
+    const{corr,dst}=solarCorr(ed,et,LOC.lat,LOC.lng,LOC.tz,LOC.utcOff);
+    if(corr!==0){const c=addMin(ed,et,corr);ed=c.d;et=c.t;sn=` · ☀ ${corr>0?'+':''}${corr}min → ${et}`;}
+  }
+
+  const dateBR=norm(ed); let entry=window.calMap[dateBR];
+  if(!entry){entry=extrapolate(ed);if(!entry){showErr('Data fora do alcance (1901–2060).');return;}}
+
+  const[hs,ms]=et.split(':'); const h=parseInt(hs),m=parseInt(ms);
+  const td=entry.elemento_do_mestre_do_dia;
+  const minOn=document.getElementById('minuto-pilar').checked;
+  const{pillars,tm,rm,ta,ra}=buildPillars(entry,h,m,unk,minOn,td);
+
+  renderTable(pillars,'pilares-grid');
+
+  const[dd,mm,yy]=dateBR.split('/');
+  const hrN=unk?' · hora desconhecida':` às ${tv||'12:00'}${sn}`;
+  const locN=LOC.name?` · ${LOC.name}`:'';
+  document.getElementById('birth-info-text').textContent=`${dd}/${mm}/${yy}${hrN}${locN}`;
+  document.getElementById('birth-chinese-text').textContent=entry.ano_chines;
+
+  const genero=document.getElementById('genero-select').value;
+  const taYun=calcTaYun(ed,genero,ta,tm,rm);
+  const taRes=renderTaYun(taYun,genero,ed,td,'');
+
+  // Luck sidebar
+  if(taYun&&taRes&&taRes.ci>=0){
+    const cp=taYun.pillars[taRes.ci], np=taYun.pillars[taRes.ci+1];
+    const range=`${cp.ano}${np?'–'+(np.ano-1):'–'}`;
+    renderLuckSidebar({...cp,mestre:td},range,'luck-pilar-container','luck-sidebar','luck-year-range');
+  }else{
+    document.getElementById('luck-sidebar').style.display='none';
+  }
+
+  document.getElementById('results').style.display='block';
+  document.getElementById('results').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// ══════ COMPARE ══════
+async function calculateCompare(){
+  const dv=document.getElementById('cmp-date').value;
+  const tv=document.getElementById('cmp-time').value;
+  const unk=document.getElementById('cmp-unknown-hour').checked;
+  const sol=document.getElementById('cmp-solar-time').checked;
+  if(!dv){alert('Selecione uma data.');return;}
+  if(!window.calMap){alert('Dados ainda carregando…');return;}
+
+  let ed=dv,et=tv||'12:00',sn='';
+  if(!unk&&sol&&CLOC.lat!==null){
+    const{corr}=solarCorr(ed,et,CLOC.lat,CLOC.lng,CLOC.tz,CLOC.utcOff);
+    if(corr!==0){const c=addMin(ed,et,corr);ed=c.d;et=c.t;sn=` · ☀ ${corr>0?'+':''}${corr}min → ${et}`;}
+  }
+
+  const dateBR=norm(ed); let entry=window.calMap[dateBR];
+  if(!entry){entry=extrapolate(ed);if(!entry){alert('Data fora do alcance.');return;}}
+
+  const[hs,ms]=et.split(':'); const h=parseInt(hs),m=parseInt(ms);
+  const td=entry.elemento_do_mestre_do_dia;
+  const minOn=document.getElementById('cmp-minuto-pilar').checked;
+  const{pillars,tm,rm,ta,ra}=buildPillars(entry,h,m,unk,minOn,td);
+
+  renderTable(pillars,'cmp-pilares-grid');
+
+  const[dd,mm,yy]=dateBR.split('/');
+  const hrN=unk?' · hora desconhecida':` às ${tv||'12:00'}${sn}`;
+  const locN=CLOC.name?` · ${CLOC.name}`:'';
+  document.getElementById('cmp-birth-info-text').textContent=`${dd}/${mm}/${yy}${hrN}${locN}`;
+  document.getElementById('cmp-birth-chinese-text').textContent=entry.ano_chines;
+
+  document.getElementById('cmp-results').style.display='block';
+}
+
+// ══════ TOGGLES ══════
+document.getElementById('unknown-hour').addEventListener('change',function(){
+  const t=document.getElementById('birth-time'),s=document.getElementById('solar-time');
+  const mp=document.getElementById('minuto-pilar');
+  const sl=document.getElementById('lbl-solar-time'),ml=document.getElementById('lbl-minuto-pilar');
+  if(this.checked){t.disabled=true;s.checked=false;s.disabled=true;sl.style.opacity='0.3';mp.checked=false;mp.disabled=true;ml.style.opacity='0.3';}
+  else{t.disabled=false;s.disabled=false;sl.style.opacity='1';mp.disabled=false;ml.style.opacity='1';}
+});
+document.addEventListener('DOMContentLoaded',()=>{
+  const cu=document.getElementById('cmp-unknown-hour');
+  if(cu)cu.addEventListener('change',function(){
+    const t=document.getElementById('cmp-time'),s=document.getElementById('cmp-solar-time'),mp=document.getElementById('cmp-minuto-pilar');
+    if(this.checked){t.disabled=true;s.checked=false;s.disabled=true;mp.checked=false;mp.disabled=true;}
+    else{t.disabled=false;s.disabled=false;mp.disabled=false;}
+  });
+});
+
+// ══════ INIT ══════
+window.addEventListener('DOMContentLoaded',async()=>{
+  document.getElementById('loading').style.display='block';
+  await loadData();
+  document.getElementById('loading').style.display='none';
+  const t=new Date(); const y=t.getFullYear();
+  if(y>=1901&&y<=2060)
+    document.getElementById('birth-date').value=`${y}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
+  setupAC('location-input','ac-dropdown',LOC,'location-meta');
+  setupAC('cmp-location-input','cmp-ac-dropdown',CLOC,'cmp-location-meta');
+  document.addEventListener('keydown',e=>{if(e.key==='Enter')calculateAll();});
+});
+</script>
+</body>
+</html>
